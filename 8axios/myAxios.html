@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      class InterceptorsManage {
+        constructor() {
+          this.handlers = [];
+        }
+
+        use(fullfield, rejected) {
+          this.handlers.push({
+            fullfield,
+            rejected,
+          });
+        }
+      }
+      class myAxios {
+        constructor() {
+          //axios.interceptors.response.use和axios.interceptors.request.use的时候，
+          //实现获取axios实例上的interceptors对象，然后再获取response或request拦截器，再执行对应的拦截器的use方法
+          this.interceptors = {
+            request: new InterceptorsManage(),
+            response: new InterceptorsManage(),
+          };
+        }
+        //核心：request实现
+        request(config) {
+          // 拦截器和请求组装队列
+          //['fulfilled1','reject1','fulfilled2','reject2','this.sendAjax','undefined','fulfilled2','reject2','fulfilled1','reject1']
+          let chain = [this.sendAjax.bind(this), undefined]; // 成对出现的，失败回调暂时不处理
+          // 请求拦截
+          this.interceptors.request.handlers.forEach((interceptor) => {
+            chain.unshift(interceptor.fullfield, interceptor.rejected);
+          });
+          // 响应拦截
+          this.interceptors.response.handlers.forEach((interceptor) => {
+            chain.push(interceptor.fullfield, interceptor.rejected);
+          });
+          // 执行队列，每次执行一对，并给promise赋最新的值
+          let promise = Promise.resolve(config);
+          while (chain.length > 0) {
+            promise = promise.then(chain.shift(), chain.shift());
+          }
+          return promise;
+        }
+        sendAjax(config) {
+          return new Promise((resolve) => {
+            const { url = "", method = "get", data = {} } = config;
+            //ajax请求
+            const xhr = new XMLHttpRequest();
+            //与服务端建立连接 xhr.open(method, url, [async][, user][, password])
+            /*            method：表示当前的请求方式，常见的有GET、POST
+                    url：服务端地址
+                    async：布尔值，表示是否异步执行操作，默认为true
+                    user: 可选的用户名用于认证用途；默认为null 
+                    password: 可选的密码用于认证用途，默认为null*/
+            xhr.open(method, url, true);
+            xhr.onload = function () {
+              resolve(xhr.responseText);
+            };
+            //发送给服务器端
+            xhr.send(data);
+          });
+        }
+      }
+
+      // 定义get,post...方法，挂在到Axios原型上
+      const methodsArr = [
+        "get",
+        "delete",
+        "head",
+        "options",
+        "put",
+        "patch",
+        "post",
+      ];
+      methodsArr.forEach((met) => {
+        myAxios.prototype[met] = function () {
+          if (["get", "delete", "head", "options"].includes(met)) {
+            // 2个参数(url[, config])
+            return this.request({
+              method: met,
+              url: arguments[0],
+              ...(arguments[1] || {}),
+            });
+          } else {
+            // 3个参数(url[,data[,config]])
+            return this.request({
+              method: met,
+              url: arguments[0],
+              data: arguments[1] || {},
+              ...(arguments[2] || {}),
+            });
+          }
+        };
+      });
+      const utils = {
+        extend(a, b, context) {
+          for (let key in b) {
+            if (b.hasOwnProperty(key)) {
+              if (typeof b[key] === "function") {
+                a[key] = b[key].bind(context);
+              } else {
+                a[key] = b[key];
+              }
+            }
+          }
+        },
+      };
+      // 最终导出axios的方法，即实例的request方法
+      function CreateAxios() {
+        let axios = new myAxios();
+        let req = axios.request.bind(axios);
+        utils.extend(req, myAxios.prototype, axios);
+        //使request也有interceptors对象
+        utils.extend(req, axios);
+        return req;
+      }
+    </script>
+  </body>
+</html>
