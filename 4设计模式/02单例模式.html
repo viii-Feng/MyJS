@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //调用即可返回相同对象函数
+      class SingleTon{
+        //私有属性
+        static #instance
+        static getInstance(){//大部分单例模式都用此命名
+            if(this.#instance===undefined){
+                this.#instance=new SingleTon();
+            }
+            return this.#instance
+        }
+      }
+      //应用：
+      //1.vant:toast/notify
+      //2.vue2/3 的use：插件单例化
+    </script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //一对多依赖：一个对象改变，所有依赖对象都收到通知 ->与3区别：增加中间商：事件总线
+      //发布者->事件总线 <-观察者
+      //应用：vue2：eventbus vue3移除$on $off $once
+      class MyEmitter{
+        #events={
+
+        }
+        $on(event,callback){
+            if(this.#events[event]===undefiend){
+                this.#events[event]=[]
+            }
+            this.#events[event].push(callback)
+        }
+        $event(event,...args){
+            const func=this.#events[event] || [];
+            func.forEach(callback => {
+                callback(...args)
+            });
+        }
+        $off(event){
+            this.#events[event]=undefiend
+        }
+        $once(event,callback){
+            this.$on(event,(...args)=>{
+                callback(...args);
+                this.$off(event)
+            })
+        }
+      }
+
+      const bus=new MyEmitter()
+      //注册事件
+      bus.$on('enven1',callback);
+      //触发事件
+      bus.$emit('enven1',a,b);
+      //移除事件
+      bus.$off('enven1');
+      //一次性事件
+      bus.$once('enven1',callback);
+
+    </script>
+  </body>
+</html>

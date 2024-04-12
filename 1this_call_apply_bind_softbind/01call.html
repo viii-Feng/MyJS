@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //1.原型中注册函数：函数即为Function实例对象 -构造函数：prototype 实例对象：__proto__
+      //thisArg:实例对象 args：函数执行参数
+      Function.prototype.myCall = function (thisArg, ...args) {
+        //2.将调用mucall的函数挂到对象上执行，这样this将指向对象
+        //bug：f可能已经被使用，覆盖原内容 --->Symbol
+        const f = Symbol("f");
+        //thisArg.f=this;
+        //. []区别：.xx即为xx常量值，[xx]会解析xx
+        thisArg[f] = this;
+
+        //3.执行，有返回值需返回
+        //let res=thisArg.f(...args);
+        let res = thisArg[f](...args);
+
+        //4.执行完后删除该参数
+        //delete thisArg.f;
+        delete thisArg[f];
+        return res;
+      };
+
+      const a1 = function (a1, a2) {
+        console.log(this);
+        console.log(a1 + a2);
+      };
+      const person = {
+        name: "a",
+      };
+      a1.mycall(person, 1, 2);
+    </script>
+  </body>
+</html>

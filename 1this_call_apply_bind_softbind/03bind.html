@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //1.原型中注册函数：函数即为Function实例对象 -构造函数：prototype 实例对象：__proto__
+      //thisArg:实例对象 args：函数执行参数
+      Function.prototype.myBind = function (thisArg, ...args) {
+        //返回应该是函数：
+        /*  return function(){
+
+            } */
+        return (...reArgs) => {
+          //用箭头函数，可以直接使用myBind的this，也就是原函数
+
+          //绑定this，严谨点可以用myCall...
+          return this.call(thisArg, ...args, ...reArgs);
+        };
+      };
+
+      const a1 = function (a1, a2, a3) {
+        console.log(this);
+        console.log(a1 + a2);
+      };
+      const person = {
+        name: "a",
+      };
+      const bindA1 = a1.myBind(person, 1, 2);
+      bindA1(3);
+    </script>
+  </body>
+</html>

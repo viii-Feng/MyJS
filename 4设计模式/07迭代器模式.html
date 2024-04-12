@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        //for in for of
+        //可迭代协议：[Symnol.iterator](){} 返回符合迭代器协议对象：next() ->{done:true}/{done:false,value:}
+        //
+        const obj={
+            [Symnol.iterator](){
+                //实现方式：
+                //1.generator
+               /*  return function* (){
+                    yield a1='a1'
+                    yield a2='a2'
+                } */
+                //2.next
+                const arr=['a1','a2'];
+                let index=0
+                return{
+                    next(){
+                        if(index<arr.length){
+                            return{done:false,value:arr[index++]}
+                        }
+                        return {done:true};
+
+                    }
+                }
+            }
+        }
+        for(const iterator of obj){
+            //
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function currFun(fun) {
+        return function curried(...args) {
+          //fun.length:fn未设置初始值的参数
+          if (args.length >= fun.length) {
+            return fun.apply(this, args);
+          } else {
+            //写法1
+            /*   return function (...args2) {
+              return curried.apply(this, args.concat(args2));
+            }; */
+            //写法2
+            return function () {
+              return curried.apply(this, args.concat([...arguments]));
+            };
+          }
+        };
+      }
+      //实际运用：参数复用
+    </script>
+  </body>
+</html>

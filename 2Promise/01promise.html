@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //分为五步：
+      const PENDING = "pending";
+      const FULFILLED = "fulfilled";
+      const REJECTED = "rejected";
+      class MyPromise {
+        //2.状态及原因:添加状态且不可逆
+        state = PENDING;
+        //4.支持异步/多次任务:定义实例属性 保存回调函数
+        #handlers = []; //[{onFulfilled,onRejected}……]
+        result = undefined;
+        //1.构造函数
+        //定义类-> 构造 ->resolve/reject -> 执行回调
+        constructor(func) {
+          //改状态，记录原因
+          const resolve = (result) => {
+            if (this.state === PENDING) {
+              //不可逆
+              this.state = FULFILLED;
+              this.result = result;
+              this.#handlers.forEach(({ onFulfilled }) => {
+                onFulfilled();
+              });
+            }
+          };
+          const reject = (result) => {
+            if (this.state === PENDING) {
+              //不可逆
+              this.state = REJECTED;
+              this.result = result;
+              this.#handlers.forEach(({ onRejected }) => {
+                onRejected();
+              });
+            }
+          };
+          //实现catch：捕获异常
+          try {
+            func(resolve, reject);
+          } catch (error) {
+            reject(error);
+          }
+        }
+        //3.then：实例方法 参数判断 根据状态判断执行哪个回调
+        //核心：需要实现微任务：后续调用then
+        //封装异步任务：promise.then->MutationObserver->setImmediate->setTimeout
+        //选择：queueMicrotask:直接传参 MutationObserver:用法下翻  setTimeout:/
+        runAsynctask(callback) {
+          if (typeof queueMicrotask === "function") {
+            queueMicrotask(callback);
+          } else if (typeof MutationObserver === "function") {
+            const obs = new MutationObserver(callback);
+            const div = document.createElement("div");
+            obs.observe(div, { childList: true });
+            div.innerText = "xxx";
+          } else {
+            setTimeout(callback, 0);
+          }
+        }
+        //实现链式抽象出的方法
+        resolvePromise(p2, res, resolve, reject) {
+          //5.5 原promise功能：返回自己的promise将报错：
+          if (res === p2) {
+            //抛出错误
+            throw new TypeError(
+              "Chaining cycle detected for promise #<promise>"
+            );
+          }
+          //5.4处理promise：
+          if (res instanceof MyPromise) {
+            //拿到成功/失败原因给p2
+            res.then(
+              (res) => resolve(res),
+              (err) => reject(res)
+            );
+          }
+          //5.2处理结果：
+          else resolve(res);
+        }
+        then(onFulfilled, onRejected) {
+          //参考promise文档：如果不是一个函数，就会被替换为一个恒等函数->值向前传递/抛出器函数->抛出收到失败原因
+          onFulfilled =
+            typeof onFulfilled === "function" ? onFulfilled : (x) => x;
+          onRejected =
+            typeof onRejected === "function"
+              ? onRejected
+              : (x) => {
+                  throw x;
+                };
+          //返回新的实例
+          const p2 = new MyPromise((resolve, reject) => {
+            if (this.state === FULFILLED) {
+              runAsynctask(() => {
+                //5.3捕获异常：
+                try {
+                  const res = onFulfilled(this.result);
+                  resolvePromise(p2, res, resolve, reject);
+                } catch (error) {
+                  reject(error);
+                }
+              });
+            } else if (this.state === REJECTED) {
+              runAsynctask(() => {
+                //5.6 捕获异常
+                try {
+                  const res = onRejected(this.result);
+                  resolvePromise(p2, res, resolve, reject);
+                } catch (error) {
+                  reject(error);
+                }
+              });
+            } else if (this.state === PENDING) {
+              //异步任务时不能马上执行then
+              this.#handlers.push({
+                //同名，可以直接丢进去，异步任务需要包装
+                /*   onFulfilled,
+                onRejected, */
+                onFulfilled: () => {
+                  runAsynctask(() => {
+                    //添加链式处理：
+                    try {
+                      const res = onFulfilled(this.result);
+                      resolvePromise(p2, res, resolve, reject);
+                    } catch (error) {
+                      reject(error);
+                    }
+                  });
+                },
+                onRejected: () => {
+                  runAsynctask(() => {
+                    //添加链式处理：
+                    try {
+                      const res = onRejected(this.result);
+                      resolvePromise(p2, res, resolve, reject);
+                    } catch (error) {
+                      reject(error);
+                    }
+                  });
+                },
+              });
+            }
+          });
+
+          return p2;
+          //5.链式:返回新的实例 获取返回值 处理返回值/异常
+        }
+        //实现catch：调用then 处理异常
+        catch(onRejected) {
+          //1.调用then
+          return this.then(undefined, onRejected);
+          //2.处理异常：在constructer里实例化里处理异常
+        }
+        //实现finally:类似调用then(onfinally,onfinally)
+        finally(onFinally) {
+          return this.then(onFinally, onFinally);
+        }
+
+        //静态方法
+        //resolve:判断传入值：promis直接返回，其他转为promise返回
+        static resolve(value) {
+          if (value instanceof MyPromise) {
+            return value;
+          }
+          return new MyPromise((resolve, reject) => {
+            resolve(value);
+          });
+        }
+        //reject:返回拒绝状态promis
+        static reject(error) {
+          return new MyPromise((undefined, reject) => {
+            reject(value);
+          });
+        }
+        //race:传入promise数组/可迭代对象，数组为空/非数组报错 得到返回最快的值
+        static race(promises) {
+          return new MyPromise((resolve, reject) => {
+            if (!Array.isArray(promises) || promises.length === 0) {
+              //空也为false
+              return reject(new TypeError("Argument is not iterable"));
+            }
+            promises.forEach((p) => {
+              MyPromise.resolve(p).then(
+                (res) => {
+                  resolve(res);
+                },
+                (error) => reject(error)
+              );
+            });
+          });
+        }
+        //高频考点：all:返回promise实例 不是数组报错 空数组直接兑现 全部兑现/全部拒绝
+        static all(promises) {
+          return new MyPromise((resolve, reject) => {
+            if (!Array.isArray(promises)) {
+              return reject(new TypeError("Argument is not iterable"));
+            }
+            //空数组直接兑现
+            promises.length === 0 && resolve(promises);
+            const results = [];
+            let count = 0;
+            promises.forEach((p, index) => {
+              MyPromise.resolve(p).then(
+                (res) => {
+                  results[index] = res;
+                  count++;
+                  count === promises.length && resolve(results);
+                },
+                (err) => {
+                  reject(err);
+                }
+              );
+            });
+          });
+        }
+        //allSettled:传入promise已敲定即可返回兑现结果：[{status:,value},{status:,reason:}] 顺序一致 空数组：直接兑现
+        static allSettled(promises) {
+          return new MyPromise((resolve, reject) => {
+            if (!Array.isArray(promises)) {
+              return reject(new TypeError("Argument is not iterable"));
+            }
+            //空数组直接兑现
+            promises.length === 0 && resolve(promises);
+            const results = [];
+            let count = 0;
+            promises.forEach((p, index) => {
+              MyPromise.resolve(p).then(
+                (res) => {
+                  results[index] = { status: FULFILLED, value: res };
+                  count++;
+                  count === promises.length && resolve(results);
+                },
+                (err) => {
+                  results[index] = { status: REJECTED, reason: err };
+                  count++;
+                  count === promises.length && resolve(results);
+                }
+              );
+            });
+          });
+        }
+        //any:有一个成功返回第一个兑现成功的，全部拒绝返回拒绝原因数组
+        static any(promises) {
+          return new MyPromise((resolve, reject) => {
+            if (!Array.isArray(promises)) {
+              return reject(new TypeError("Argument is not iterable"));
+            }
+            //空数组直接兑现
+            promises.length === 0 &&
+              reject(
+                new AggregateError(promises, "All promises were rejected")
+              );
+            const errRes = [];
+            let count = 0;
+            promises.forEach((p, index) => {
+              MyPromise.resolve(p).then(
+                (res) => {
+                  resolve(res);
+                },
+                (err) => {
+                  errRes[index] = err;
+                  count++;
+                  count === promises.length &&
+                    reject(
+                      new AggregateError(errRes, "All promises were rejected")
+                    );
+                }
+              );
+            });
+          });
+        }
+      }
+      //MutationObserver:用法
+      /*  const ob=new MutationObserver(()=>{console.log(666)}    )
+    const div=document.createElement('div');
+    ob.observe(div,{childList:true});
+    div.innerText="xxx" */
+
+      const p = new MyPromise((resolve, reject) => {
+        resolve("success");
+        console.log(1);
+        //异步任务
+        setTimeout(() => {
+          resolve("success");
+          console.log(2);
+        }, 2000);
+      });
+    </script>
+  </body>
+</html>

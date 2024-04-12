@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function currFun(fun) {
+        return function curriedFun(...args) {
+          if (args.length < fun.length) {
+            return function (...arg2) {
+              curriedFun.apply(this, args.concat(arg2));
+            };
+          }
+          return fun.apply(this, args);
+        };
+      }
+    </script>
+  </body>
+</html>
