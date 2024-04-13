@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>浅拷贝</title>
+  </head>
+  <body>
+    <script>
+      //创建新对象，有新地址 f
+      function shallowClone(src) {
+        let target = Array.isArray(src) ? [] : {};
+        for (let i in src) {
+          target[i] = src[i];
+        }
+        return target;
+      }
+    </script>
+  </body>
+</html>

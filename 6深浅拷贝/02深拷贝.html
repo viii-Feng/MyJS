@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let person = {
+        name: "a",
+        hobby: ["sing", "dance"],
+        eat: function () {},
+        date: new Date(),
+      };
+      //1.弊端：函数无了，undefined、symbol也会无date转化为字符串无法转化回对象
+      let deepPerson = JSON.parse(JSON.stringify(person));
+      //2.递归 ---对象的自我引用会出现问题
+      function deepClone(src) {
+        if (
+          src === null ||
+          typeof src !== "object" ||
+          src instanceof Date ||
+          src instanceof RegExp
+        ) {
+          return src;
+        }
+        let obj = Array.isArray(src) ? [] : {};
+        for (let i in src) {
+          if (src.hasOwnProperty(i)) {
+            obj[i] = deepClone(src[i]);
+          }
+        }
+        return obj;
+      }
+      //改善：
+      function deepClone(source, cache = new WeakMap()) {
+        //原始类型或函数直接返回
+        if (typeof source !== "object") {
+          return source;
+        }
+
+        //加入缓存解决循环引用
+        if (cache.has(source)) {
+          return cache.get(source);
+        }
+        let res = new source.constructor();
+        cache.set(source, res);
+
+        //处理JS内置数据结构：Array、Map、Set、Object
+        if (source instanceof Array) {
+          source.forEach((v) => {
+            res.push(deepClone(v, cache));
+          });
+        } else if (source instanceof Map) {
+          for (const [k, v] of source) {
+            res.set(k, deepClone(v, cache));
+          }
+        } else if (source instanceof Set) {
+          for (const v of source) {
+            res.add(deepClone(v, cache));
+          }
+        } else if (
+          Object.prototype.toString.call(source) == "[object Object]"
+        ) {
+          for (const key in source) {
+            res[key] = deepClone(source[key], cache);
+          }
+        } else {
+          //处理自定义对象（需遵循协议new constructors时为深拷贝）
+          res = new source.constructor(source);
+        }
+
+        return res;
+      }
+    </script>
+  </body>
+</html>
