@@ -41,6 +41,7 @@ class EventEmitter {
     }
 
     once(type, handler) {
+        //注意：加括号会立即执行，不想执行不加括号
         this.on(type, this._onceWrap(type, handler, this));
     }
 
