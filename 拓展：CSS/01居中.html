@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="container2">
+      <div class="item2">块级元素</div>
+    </div>
+    <style>
+      /*最简单：flex-*/
+      .container {
+        display: flex;
+        background-color: rgb(47, 52, 50);
+        height: 300px;
+        margin: 1rem;
+      }
+      .item {
+        margin: auto;
+        background-color: rgb(104, 96, 96);
+        width: 100px;
+        height: 100px;
+      }
+      /*经典:绝对定位，transform-->*/
+      .container1 {
+        position: relative;
+        background-color: rgb(47, 52, 50);
+        height: 300px;
+        margin: 1rem;
+      }
+      .item1 {
+        position: absolute;
+        background-color: rgb(104, 96, 96);
+        width: 100px;
+        height: 100px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      /*grid*/
+      .container2 {
+        display: grid;
+        background-color: rgb(47, 52, 50);
+        height: 300px;
+        margin: 1rem;
+      }
+      .item2 {
+        background-color: rgb(104, 96, 96);
+        width: 100px;
+        height: 100px;
+        margin: auto;
+      }
+    </style>
+  </body>
+</html>
