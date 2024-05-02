@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="container1">
+      <div class="left1">菜单</div>
+      <div class="main1">主要内容</div>
+    </div>
+    <style>
+      .container {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      .left {
+        background-color: antiquewhite;
+        width: 300px;
+        height: 100vh;
+      }
+      .main {
+        margin-left: 5px;
+        flex-grow: 1;
+        background-color: rgb(135, 75, 15);
+        height: 100vh;
+      }
+      /*浮动+BFC*/
+      .container1 {
+        width: 100%;
+        height: 100%;
+        padding: 0%;
+      }
+      .left1 {
+        float: left;/*浮动，自身高度塌陷，其他块级元素可以占一行*/
+        background-color: antiquewhite;
+        width: 300px;
+        height: 100vh;
+      }
+      .main1 {
+        overflow: hidden;/*本身div，流一行，触发BFC，与浮动元素隔离*/
+        margin-left: 5px;
+        background-color: rgb(135, 75, 15);
+        height: 100vh;
+      }
+      /*grid*/
+      .container2 {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        width: 100%;
+        height: 100%;
+      }
+      .left2 {
+        background-color: antiquewhite;
+      }
+      .main2 {
+        background-color: rgb(135, 75, 15);
+      }
+    </style>
+  </body>
+</html>

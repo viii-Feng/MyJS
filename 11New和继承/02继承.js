@@ -62,6 +62,7 @@ let parent4 = {
 //3.寄生组合式继承
 function clone (parent, child) {
     // 这里改用 Object.create 就可以减少组合继承中多进行一次构造的过程
+    //我们这里也可以写成child.prototype=parent.prototype,但弊端是子类添加方法，父类实例也会跟着添加
     child.prototype = Object.create(parent.prototype);
     child.prototype.constructor = child;
 }

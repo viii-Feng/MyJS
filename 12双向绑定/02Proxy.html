@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <input type="text" id="input" />
+    <p id="p">这是你想要的值</p>
+  </body>
+  <script>
+    let input = document.getElementById("input");
+
+    let p = document.getElementById("p");
+    console.log(p);
+    let obj = {};
+    //不需要遍历，即可监听到类的所有属性
+    let newproxy = new Proxy(obj, {
+      get(target, key, receiver) {
+        return Reflect.get(target, key, receiver);
+      },
+      set(target, key, value, receiver) {
+        console.log(target);
+        if (key == "name") {
+          p.innerHTML = value;
+        }
+        return Reflect.set(target, key, value, receiver);
+      },
+    });
+    document.addEventListener("input", function (e) {
+      newproxy.name = e.target.value;
+    });
+  </script>
+</html>

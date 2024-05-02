@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //let c = 10;
+      function a() {
+        alert(c);
+      }
+      (function b() {
+        let c = 20;
+        a();
+      })(); //输出10：
+      //尽管在 IIFE 内部有一个局部变量 c，但函数 a() 在查找变量时会优先使用自己的作用域，然后再向上查找。
+      //注释掉全局c会报错：
+      //在JavaScript中，函数的作用域是在函数定义时就确定的，这个特性被称为词法作用域或静态作用域。
+      //函数 a 在全局作用域中定义，因此它的作用域链包含全局作用域，而不是在它被调用时的作用域。
+      //当您在IIFE中定义了一个新的局部变量 c 并赋值为 20，这个变量只在IIFE的局部作用域中有效。
+      //函数 a 在执行时会查找它自己作用域链上的变量 c，但由于 a 是在全局作用域中定义的，它只能访问全局作用域中的变量 c。
+      (function c() {
+        c = 20;
+        alert(c);
+      })(); //输出函数
+    </script>
+  </body>
+</html>

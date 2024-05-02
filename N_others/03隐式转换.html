@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //关系运算符转换为Number
+      //逻辑非转化为boolean
+      console.log([] == 0); //TRUE  Number([].valueof()./toString():每个元素转化为字符串用逗号连接)
+      console.log(![] == 0); //TRUE Boolean([])->true
+      //false:0 NaN undefined null '' false
+      console.log([""] == 0); //true
+
+      console.log([] == ![]); //true
+      //第一个：[].valueof().toString()：""  第二个：false 转化成number比较
+      console.log([] == []); //false,代表的两个空间
+
+      console.log({} == !{}); //false
+      //第一个：后面的值转化成false
+      //对象转化成boolean:除了null都是1
+      console.log({} == {}); //false
+
+      console.log(NaN == NaN); //FALSE
+      console.log(undefined == null); //true
+    </script>
+  </body>
+</html>
