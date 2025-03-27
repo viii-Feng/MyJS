@@ -1,0 +1,66 @@
+<!--
+ * @Autor: weifeng68
+ * @Email: weifeng68@jd.com
+ * @Description: 
+ * @CreateDate: Do not edit
+ * @LastEditors: weifeng68
+ * @LastEditTime: 2025-03-27 10:56:37
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        // 第一想法：写个while计时： 打咩 一直占用cpu 只能用settimeout
+        var timeLimitError = function(fn, t) {
+            const now = new Date()
+            return async function(...args) {
+                const promise1 = new Promise((res, rej) => {
+                while(new Date() - now < t) continue;
+                rej("Time Limit Exceeded")
+                })
+                const promise2 = new Promise((resolve) => {
+                    const res = fn(...args)
+                    resolve(res)
+                })
+                return Promise.race([promise1, promise2])
+            }
+        };
+
+        var timeLimit_1 = function(fn, t) {
+            return async function(...args) {
+                let timer
+                const promise1 = new Promise((res, rej) => {
+                    timer = setTimeout(() => rej("Time Limit Exceeded"), t)
+                })
+                const promise2 = new Promise((resolve) => {
+                    const res = fn(...args)
+                    resolve(res)
+                })
+                return Promise.race([promise1, promise2]).then(res =>{
+                     clearTimeout(timer)
+                     return res
+                })
+            }
+        };
+        // 第二种方法： promise状态只能改变一次
+        var timeLimit_2 = function(fn, t) {
+            return async function(...args) {
+                return new Promise((resolve, rej) =>{
+                      setTimeout(() => rej("Time Limit Exceeded"), t)
+                      fn(...args).then(res => resolve(res)).catch(err => rej(err))
+                })
+            }
+        };
+        const now = new Date()
+        const newFn = timeLimit_2((t) => new Promise((res) => setTimeout(()=> res(`resoled: time ${new Date() - now}`), t)), 100)
+        newFn(50).then(console.log).catch(console.log)
+
+    </script>
+</head>
+<body>
+    
+</body>
+</html>
